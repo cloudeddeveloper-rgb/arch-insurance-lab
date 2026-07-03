@@ -1,0 +1,26 @@
+# One Postgres container hosting three logical databases - one per service.
+# In production these would be separate instances/clusters; a single container
+# with three databases keeps the local footprint small while preserving the
+# database-per-service boundary (no shared schema, no cross-service tables).
+services:
+  postgres:
+    image: postgres:17
+    container_name: arch-lab-postgres
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      # Scripts in this folder run once, on first container init.
+      - ./db/init:/docker-entrypoint-initdb.d
+      - arch_lab_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  arch_lab_pgdata:

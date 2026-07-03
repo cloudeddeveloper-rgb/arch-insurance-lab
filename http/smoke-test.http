@@ -1,0 +1,87 @@
+### Arch Insurance Lab - quote-to-bind smoke test
+### Run these top-to-bottom in IntelliJ (click the green arrow by each request).
+### IntelliJ captures the returned ids into variables, so later steps reuse them.
+
+### 1. Create a customer  -> 201 Created
+POST http://localhost:8081/api/v1/customers
+Content-Type: application/json
+
+{
+  "firstName": "Ada",
+  "lastName": "Lovelace",
+  "email": "ada.lovelace@example.com",
+  "dateOfBirth": "1990-12-10"
+}
+
+> {%
+    client.global.set("customerId", response.body.id);
+    client.test("customer created", () => client.assert(response.status === 201));
+%}
+
+### 2. Fetch the customer  -> 200 OK
+GET http://localhost:8081/api/v1/customers/{{customerId}}
+
+### 3. Price a quote for that customer  -> 201 Created
+POST http://localhost:8082/api/v1/quotes
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "productType": "AUTO",
+  "coverageAmount": 50000
+}
+
+> {%
+    client.global.set("quoteId", response.body.id);
+    client.test("quote is QUOTED", () => client.assert(response.body.status === "QUOTED"));
+%}
+
+### 4. Bind the quote into a policy  -> 201 Created
+POST http://localhost:8083/api/v1/policies
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "quoteId": "{{quoteId}}"
+}
+
+> {%
+    client.global.set("policyId", response.body.id);
+    client.test("policy is ACTIVE", () => client.assert(response.body.status === "ACTIVE"));
+%}
+
+### 5. Fetch the policy  -> 200 OK
+GET http://localhost:8083/api/v1/policies/{{policyId}}
+
+###############################################################################
+# Failure cases - these SHOULD return errors (RFC 7807 ProblemDetail bodies)
+###############################################################################
+
+### 6. Bind with a customer that does not exist  -> 422 Unprocessable Entity
+POST http://localhost:8083/api/v1/policies
+Content-Type: application/json
+
+{
+  "customerId": "00000000-0000-0000-0000-000000000000",
+  "quoteId": "{{quoteId}}"
+}
+
+### 7. Bind a quote that belongs to a different customer  -> 422
+POST http://localhost:8083/api/v1/policies
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "quoteId": "11111111-1111-1111-1111-111111111111"
+}
+
+### 8. Create a customer with a bad payload  -> 400 Bad Request (validation)
+POST http://localhost:8081/api/v1/customers
+Content-Type: application/json
+
+{
+  "firstName": "",
+  "lastName": "NoEmail",
+  "email": "not-an-email",
+  "dateOfBirth": "2999-01-01"
+}

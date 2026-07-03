@@ -1,0 +1,18 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# OS / logs
+.DS_Store
+*.log
+
+# Local env overrides
+application-local.yml
+application-local.properties

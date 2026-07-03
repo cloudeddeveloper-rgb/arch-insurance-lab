@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: customer-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/customerdb
+    username: appuser
+    password: apppass
+  jpa:
+    hibernate:
+      ddl-auto: update      # lab convenience only; production uses Flyway/Liquibase
+    open-in-view: false     # avoid lazy-loading in the view layer
+    properties:
+      hibernate.format_sql: true
+  threads:
+    virtual:
+      enabled: true         # Java 25 virtual threads for the servlet request pool
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true       # /actuator/health/liveness and /readiness
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

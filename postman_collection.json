@@ -1,0 +1,323 @@
+{
+  "info": {
+    "name": "Arch Insurance Lab (Java 25 / Spring Boot 4.1)",
+    "description": "Quote-to-bind flow across customer (:8081), rating (:8082), policy (:8083). Run the requests top-to-bottom; each captures the returned id into a collection variable for the next step.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseCustomer",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "baseRating",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "basePolicy",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "quoteId",
+      "value": ""
+    },
+    {
+      "key": "policyId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Create customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Lovelace\",\n  \"email\": \"ada.lovelace@example.com\",\n  \"dateOfBirth\": \"1990-12-10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.collectionVariables.set('customerId', b.id);",
+              "console.log('customerId =', b.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Get customer",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers/{{customerId}}",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers",
+            "{{customerId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Price a quote",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseRating}}/api/v1/quotes",
+          "host": [
+            "{{baseRating}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "quotes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"productType\": \"AUTO\",\n  \"coverageAmount\": 50000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('status is QUOTED', () => pm.expect(b.status).to.eql('QUOTED'));",
+              "pm.collectionVariables.set('quoteId', b.id);",
+              "console.log('quoteId =', b.id, 'premium =', b.annualPremium);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Bind policy",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('status is ACTIVE', () => pm.expect(b.status).to.eql('ACTIVE'));",
+              "pm.collectionVariables.set('policyId', b.id);",
+              "console.log('policyId =', b.id, 'policyNumber =', b.policyNumber);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Get policy",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies/{{policyId}}",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies",
+            "{{policyId}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. [error] Bind with missing customer -> 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies"
+          ]
+        },
+        "description": "policy-service turns the downstream 404 (unknown customer) into a 422.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. [error] Create customer with bad payload -> 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ]
+        },
+        "description": "Bean Validation failures return an RFC 7807 ProblemDetail with field messages.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"X\",\n  \"email\": \"not-an-email\",\n  \"dateOfBirth\": \"2999-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
