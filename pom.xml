@@ -19,7 +19,6 @@
     <packaging>pom</packaging>
     <name>arch-insurance-lab</name>
     <description>P&amp;C insurance quote-to-bind microservices lab (Java 25, Spring Boot 4.1)</description>
-
     <modules>
         <module>customer-service</module>
         <module>rating-service</module>
