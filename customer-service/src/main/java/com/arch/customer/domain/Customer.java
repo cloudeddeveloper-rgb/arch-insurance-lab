@@ -23,22 +23,22 @@ import lombok.*;
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private @Getter UUID id;
 
     @Column(nullable = false)
-    private String firstName;
+    private @Getter String firstName;
 
     @Column(nullable = false)
-    private String lastName;
+    private @Getter String lastName;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private @Getter String email;
 
     @Column(nullable = false)
-    private LocalDate dateOfBirth;
+    private @Getter LocalDate dateOfBirth;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    private @Getter Instant createdAt;
 
     public Customer(String firstName, String lastName, String email, LocalDate dateOfBirth) {
         this.firstName = firstName;
