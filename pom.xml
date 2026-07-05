@@ -26,6 +26,16 @@
         <module>policy-service</module>
     </modules>
 
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <version>1.18.46</version>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
     <properties>
         <!-- Boot 4.1 supports up to Java 26; we build on the current LTS. -->
         <java.version>25</java.version>

@@ -1,0 +1,378 @@
+{
+  "info": {
+    "_postman_id": "20f0e23e-c081-45db-9f3f-6c2b677b8def",
+    "name": "Arch Insurance Lab (Java 25 / Spring Boot 4.1)",
+    "description": "Quote-to-bind flow across customer (:8081), rating (:8082), policy (:8083). Run the requests top-to-bottom; each captures the returned id into a collection variable for the next step.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53005038",
+    "_collection_link": "https://go.postman.co/collection/53005038-20f0e23e-c081-45db-9f3f-6c2b677b8def?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Create customer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.collectionVariables.set('customerId', b.id);",
+              "console.log('customerId =', b.id);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"two\",\n  \"lastName\": \"Lovelace\",\n  \"email\": \"two.lovelace@example.com\",\n  \"dateOfBirth\": \"1990-12-10\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get customer",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers/{{customerId}}",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers",
+            "{{customerId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Price a quote",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('status is QUOTED', () => pm.expect(b.status).to.eql('QUOTED'));",
+              "pm.collectionVariables.set('quoteId', b.id);",
+              "pm.collectionVariables.set('quotePremium', b.annualPremium);",
+              "console.log('quoteId =', b.id, 'quotePremium =', b.annualPremium);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"productType\": \"HOME\",\n  \"coverageAmount\": 10000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseRating}}/api/v1/quotes",
+          "host": [
+            "{{baseRating}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "quotes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Bind policy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const b = pm.response.json();",
+              "pm.test('status is ACTIVE', () => pm.expect(b.status).to.eql('ACTIVE'));",
+              "pm.collectionVariables.set('policyId', b.id);",
+              "pm.collectionVariables.set('policyNumber', b.policyNumber);",
+              "pm.collectionVariables.set('policyPremium', b.annualPremium);",
+              "console.log('policyId =', b.id, 'policyNumber =', b.policyNumber);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get policy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies/{{policyId}}",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies",
+            "{{policyId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. [error] Bind with missing customer -> 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"00000000-0000-0000-0000-000000000000\",\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{basePolicy}}/api/v1/policies",
+          "host": [
+            "{{basePolicy}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "policies"
+          ]
+        },
+        "description": "policy-service turns the downstream 404 (unknown customer) into a 422."
+      },
+      "response": []
+    },
+    {
+      "name": "7. [error] Create customer with bad payload -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"X\",\n  \"email\": \"not-an-email\",\n  \"dateOfBirth\": \"2999-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseCustomer}}/api/v1/customers",
+          "host": [
+            "{{baseCustomer}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "customers"
+          ]
+        },
+        "description": "Bean Validation failures return an RFC 7807 ProblemDetail with field messages."
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseCustomer",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "baseRating",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "basePolicy",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "quoteId",
+      "value": ""
+    },
+    {
+      "key": "quotePremium",
+      "value": ""
+    },
+    {
+      "key": "policyId",
+      "value": ""
+    },
+    {
+      "key": "policyPremium",
+      "value": ""
+    },
+    {
+      "key": "policyNumber",
+      "value": ""
+    }
+  ]
+}

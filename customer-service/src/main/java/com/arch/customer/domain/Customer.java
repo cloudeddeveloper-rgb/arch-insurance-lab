@@ -12,10 +12,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import lombok.*;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "customers")
 public class Customer {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -35,10 +40,6 @@ public class Customer {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    protected Customer() {
-        // required by JPA
-    }
-
     public Customer(String firstName, String lastName, String email, LocalDate dateOfBirth) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -50,11 +51,4 @@ public class Customer {
     void onCreate() {
         this.createdAt = Instant.now();
     }
-
-    public UUID getId() { return id; }
-    public String getFirstName() { return firstName; }
-    public String getLastName() { return lastName; }
-    public String getEmail() { return email; }
-    public LocalDate getDateOfBirth() { return dateOfBirth; }
-    public Instant getCreatedAt() { return createdAt; }
 }

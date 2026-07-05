@@ -15,6 +15,11 @@
     <name>rating-service</name>
     <description>Prices quotes. Leaf service - no downstream calls.</description>
 
+    <properties>
+      <java.version>25</java.version>
+      <maven.compiler.release>25</maven.compiler.release>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
